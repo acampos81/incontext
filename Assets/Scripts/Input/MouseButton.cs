@@ -2,5 +2,6 @@
 {
     LEFT,
     RIGHT,
-    MIDDLE
+    MIDDLE,
+    NONE
 }

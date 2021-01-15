@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 
-public class PanControl : ICameraControl
+public class PanControl : MouseControl
 {
-    public void UpdateCamera(Transform cameraTransform)
+    public override void UpdateCamera(Transform cameraTransform)
     {
         
     }

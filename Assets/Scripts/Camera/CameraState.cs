@@ -1,8 +1,8 @@
 ﻿public enum CameraState
 {
-    IDLE,
     ORBIT,
     PAN,
     ROTATE,
-    ZOOM,
+    MOUSE_ZOOM,
+    IDLE
 }

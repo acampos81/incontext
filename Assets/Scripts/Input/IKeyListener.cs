@@ -1,7 +1,5 @@
-﻿using UnityEngine;
-
-public interface IKeyListener : IInputTypeListener
+﻿public interface IKeyListener : IInputTypeListener
 {
-    void HandleKeyDown(KeyCode keyCode);
-    void HandleKeyUp(KeyCode keyCode);
+    void HandleKeyDown(AppKey appKey);
+    void HandleKeyUp(AppKey appKey);
 }

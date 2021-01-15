@@ -7,71 +7,127 @@ public class CameraController : MonoBehaviour,
     IMouseListener,
     IKeyListener
 {
-    private CameraState _currentState;
-    private ICameraControl _activeControl;
     private Dictionary<CameraState, ICameraControl> _stateControls;
+    private CameraState _currentState;
+    private ICameraControl _currentStateControl;
+    private ScrollZoomControl _scrollZoomControl;
+    private MouseButton _currentMouseButton;
+    private bool _ctrlDown;
+    private bool _altDown;
 
     private void Awake()
     {
         _stateControls = new Dictionary<CameraState, ICameraControl>
         {
-            {CameraState.IDLE, null },
             {CameraState.ORBIT, new OrbitControl()},
             {CameraState.PAN,   new PanControl()},
             {CameraState.ROTATE, new RotationControl()},
-            {CameraState.ZOOM, new ZoomControl()}
+            {CameraState.MOUSE_ZOOM, new MouseZoomControl()}
         };
+
+        // Scrollwheel zooming is stateless.  It's handled
+        // whenever a delta greater than 0 is detected.
+        _scrollZoomControl = new ScrollZoomControl();
 
         _currentState = CameraState.IDLE;
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if (_activeControl != null)
-            _activeControl.UpdateCamera(transform);
+        if (_currentStateControl == null) return;
+
+        _currentStateControl.UpdateCamera(transform);
     }
 
     void UpdateState(CameraState newState)
     {
-        if( _currentState == newState) return;
+        if (_currentState == newState) return;
 
         _currentState = newState;
-        _activeControl = _stateControls[_currentState];
+        _currentStateControl = null;
 
-        Logger.Camera(string.Format("Camera State Update: {0}", _currentState));
-        Logger.Camera(string.Format("Active Controller: {0}", _activeControl));
+        if (_currentState != CameraState.IDLE)
+        {
+            _currentStateControl = _stateControls[_currentState];
+            _currentStateControl.Init();
+        }
     }
 
     public void HandleInputType(InputType inputType)
     {
         this.enabled = inputType == InputType.WORLD;
-        Logger.Camera(string.Format("Input Type Update: {0}",inputType));
     }
 
     public void HandleMouseButtonDown(MouseButton button)
     {
-        Logger.Camera("Mouse Button Down "+button);
+        if (_currentState != CameraState.IDLE) return;
+
+        _currentMouseButton = button;
+
+        switch(_currentMouseButton)
+        {
+            case MouseButton.LEFT:
+                if (_ctrlDown)
+                {
+                    UpdateState(CameraState.ORBIT);
+                }
+                break;
+            case MouseButton.RIGHT:
+                if(_altDown)
+                {
+                    UpdateState(CameraState.MOUSE_ZOOM);
+                } else
+                {
+                    UpdateState(CameraState.ROTATE);
+                }
+                break;
+            case MouseButton.MIDDLE:
+                UpdateState(CameraState.PAN);
+                break;
+        }    
     }
 
     public void HandleMouseButtonUp(MouseButton button)
     {
-        Logger.Camera("Mouse Button Up "+button);
+        if (_currentMouseButton != button) return;
+        
+        _currentMouseButton = MouseButton.NONE;
+        UpdateState(CameraState.IDLE);
     }
 
-    public void HandleScrolling(float scrollDelta)
+    public void HandleScrolling(Vector2 scrollDelta)
     {
-        Logger.Camera("Scroll Delta "+scrollDelta);
+        if (_currentState != CameraState.IDLE) return;
+
+        _scrollZoomControl.Init();
+        _scrollZoomControl.UpdateCamera(transform);
     }
 
-    public void HandleKeyDown(KeyCode keyCode)
+    public void HandleKeyDown(AppKey appKey)
     {
-        Logger.Camera(keyCode.ToString());
+        // If either key is not down, set it's flag to true if the keycode matches
+
+        if(!_altDown)
+            _altDown = appKey == AppKey.ALT;
+
+        if(!_ctrlDown)
+            _ctrlDown = appKey == AppKey.CTRL;
     }
 
-    public void HandleKeyUp(KeyCode keyCode)
+    public void HandleKeyUp(AppKey appKey)
     {
-        Logger.Camera(keyCode.ToString());
+        // If either key is down, set it's flag to false if the keycode matches
+        if(_altDown)
+            _altDown = !(appKey == AppKey.ALT);
+
+        if(_ctrlDown)
+            _ctrlDown = !(appKey == AppKey.CTRL);
+    }
+
+
+    private void OnDisable()
+    {
+        UpdateState(CameraState.IDLE);
     }
 
 }

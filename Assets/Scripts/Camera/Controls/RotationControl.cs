@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 
-public class RotationControl : ICameraControl
+public class RotationControl : MouseControl
 {
-    public void UpdateCamera(Transform cameraTransform)
+    public override void UpdateCamera(Transform cameraTransform)
     {
 
     }

@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 
-public class OrbitControl : ICameraControl
+public class OrbitControl : MouseControl
 {
-    public void UpdateCamera(Transform cameraTransform)
+    public override void UpdateCamera(Transform cameraTransform)
     {
 
     }

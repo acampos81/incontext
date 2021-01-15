@@ -9,7 +9,6 @@ public class InputManager : MonoBehaviour
     private List<IKeyListener> _keyListeners;
     private List<int> _mouseButtons;
     private List<KeyCode> _appKeys;
-    private float _currentDelta;
 
     private void Awake()
     {
@@ -32,6 +31,8 @@ public class InputManager : MonoBehaviour
         }
 
         _appKeys = new List<KeyCode>();
+        _appKeys.Add(KeyCode.LeftAlt);
+        _appKeys.Add(KeyCode.RightAlt);
         _appKeys.Add(KeyCode.LeftControl);
         _appKeys.Add(KeyCode.RightControl);
 
@@ -39,8 +40,6 @@ public class InputManager : MonoBehaviour
         _mouseButtons.Add(0);
         _mouseButtons.Add(1);
         _mouseButtons.Add(2);
-
-        _currentDelta = 0f;
     }
 
     // Start is called before the first frame update
@@ -81,13 +80,11 @@ public class InputManager : MonoBehaviour
             }
         }
 
-        var scrollDelta = Input.mouseScrollDelta.y;
-        if(_currentDelta != scrollDelta)
+        if(Input.mouseScrollDelta.y != 0)
         {
-            _currentDelta = scrollDelta;
             foreach (var mouseListener in _mouseListeners)
             {
-                mouseListener.HandleScrolling(_currentDelta);
+                mouseListener.HandleScrolling(Input.mouseScrollDelta);
             }
         }
     }
@@ -100,7 +97,7 @@ public class InputManager : MonoBehaviour
             {
                 foreach (var keyListener in _keyListeners)
                 {
-                    keyListener.HandleKeyDown(keyCode);
+                    keyListener.HandleKeyDown(GetAppKey(keyCode));
                 }
             }
 
@@ -108,9 +105,25 @@ public class InputManager : MonoBehaviour
             {
                 foreach (var keyListener in _keyListeners)
                 {
-                    keyListener.HandleKeyUp(keyCode);
+                    keyListener.HandleKeyUp(GetAppKey(keyCode));
                 }
             }
         }
     }
+
+    AppKey GetAppKey(KeyCode keyCode)
+    {
+        switch(keyCode)
+        {
+            case KeyCode.LeftAlt:
+            case KeyCode.RightAlt:
+                return AppKey.ALT;
+            case KeyCode.LeftControl:
+            case KeyCode.RightControl:
+                return AppKey.CTRL;
+            default:
+                return AppKey.UNKNOWN;
+        }
+    }
+
 }
