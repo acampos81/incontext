@@ -2,15 +2,17 @@
 
 public class OrbitControl : MouseControl
 {
+    public Transform OrbitTarget { get; set; }
+
     private Vector3 _orbitPoint;
     private float _startDistance;
-    private float _startXAngle;
+    private float _startXZAngle;
     private float _startYAngle;
 
     public override void Init(Transform transform)
     {
         base.Init(transform);
-        CheckDistanceToOrbitPoint();
+        SetOrbitPoint();
         SetStartParameters();
     }
 
@@ -23,60 +25,78 @@ public class OrbitControl : MouseControl
         // Vector from the orbit point to the this transform
         var currentOrbitVector = _transform.position - _orbitPoint;
 
-        // Project the orbit vector onto the plane formed by x and z axis.
+        // Project currentOrbitVector onto the XZ plane.
+        // Represents a distance and direction, starting at the world origin.
         var xzVector = MathUtil.ProjectVectorOnPlane(currentOrbitVector, Vector3.forward, Vector3.right);
 
-        // Turn the y mouse movement into a y position based on the angle from the projected xz vector.
-        var yPosition = MathUtil.PositionFromAngle(_startXAngle - delta.y, _startDistance, Vector3.up, xzVector);
+        // Add the horizontal mouse movement to the transform's starting Y-axis rotation.
+        // Use the new Y-axis angle to determine a XZ position relative to _orbitPoint
+        var yAngle = _startYAngle - delta.x;
+        var xzPosition = _orbitPoint + MathUtil.PositionFromAngle(yAngle, xzVector.magnitude, Vector3.forward, Vector3.right);
 
-        // Turn the x mouse movement into a position on the XZ plane.
-        var xzPosition = MathUtil.PositionFromAngle(_startYAngle - delta.x, xzVector.magnitude, Vector3.forward, Vector3.right);
+        // Add the vertical mouse movement to the transform's starting angle from the xzVector.
+        // Use the angle to determine the y position.
+        var yPosition = MathUtil.PositionFromAngle(_startXZAngle - delta.y, _startDistance, Vector3.up, xzVector);
 
-        // Apply the y coordinate to the xz vector
+        // Add the y coordinate to xzPosition.
         xzPosition.y = yPosition.y;
-        
+
         // Update the transform position
         _transform.position = xzPosition;
 
-        // Update the transform rotation
-        _transform.LookAt(_orbitPoint);
+        // Determine the LookAt rotation
+        if (OrbitTarget != null)
+        {
+            _transform.LookAt(_orbitPoint);
+        }else
+        {
+            _transform.rotation = Quaternion.AngleAxis(90f+yAngle, Vector3.down);
+        }
+            
     }
 
-    private void CheckDistanceToOrbitPoint()
+    private void SetOrbitPoint()
     {
-        // Check if the camera has moved past the orbit point.
-        // This indicates zooming in past the point.
+        if (OrbitTarget == null)
+        {
+            ResetOrbitPoint();
+            return;
+        }
+
+        _orbitPoint = OrbitTarget.position;
+
+        // Check if the distance to the target is less than 1.
         var distance = (_orbitPoint - _transform.position).magnitude;
 
         if(distance < 1f)
             ResetOrbitPoint();
+
     }
 
     private void SetStartParameters()
     {
-        var startVector = _transform.position - _orbitPoint;
-        var xzVector = MathUtil.ProjectVectorOnPlane(startVector, Vector3.forward, Vector3.right);
+        var orbitVector = _transform.position - _orbitPoint;
+        var xzVector = MathUtil.ProjectVectorOnPlane(orbitVector, Vector3.forward, Vector3.right);
 
-        _startDistance = startVector.magnitude;
+        _startDistance = orbitVector.magnitude;
+        _startXZAngle = MathUtil.VectorAngle(orbitVector, xzVector);
         _startYAngle = Mathf.Atan2(xzVector.z, xzVector.x) * Mathf.Rad2Deg;
-        _startXAngle = MathUtil.VectorAngle(startVector, xzVector);
-    }
 
-    public void SetOrbitPoint(Vector3 point)
-    {
-        _orbitPoint = point;
+        Debug.Log(string.Format("startDistance:{0}, startX:{1}, startY{2}", _startDistance, _startXZAngle, _startYAngle));
     }
 
     public void ResetOrbitPoint()
     {
-        // 1. Scale the camara's forward vector (look direction) by 5 units.
-        var forward = _transform.forward * 5f;
+        // 1. Scale the camara's forward vector (look direction) by 10 units.
+        var forward = _transform.forward * 10f;
+        
+        // 2. Project the forward vector on the XZ plane.
+        var xzVector = MathUtil.ProjectVectorOnPlane(forward, Vector3.forward, Vector3.right);
 
-        // 2. Take the dot product of the forward vector and the X and Z axes.
-        var dotX = Vector3.Dot(forward, Vector3.right);
-        var dotZ = Vector3.Dot(forward, Vector3.forward);
+        // 3. Add the xzVector to the transform's xz position to determine the orbit point.
+        var position = _transform.position;
+        _orbitPoint = new Vector3(position.x + xzVector.x, 0f, position.z + xzVector.z);
 
-        // 3. The dot products produce the orbit point on the XZ plane.
-        _orbitPoint = new Vector3(dotX, 0f, dotZ);
+        Debug.Log("OrbitPoint: "+_orbitPoint);
     }
 }

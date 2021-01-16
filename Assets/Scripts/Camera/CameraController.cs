@@ -69,7 +69,7 @@ public class CameraController : InputListenerBase, IInputListener
         // handled in OrbitControl's Init method.
         if(_currentState == CameraState.PAN || _currentState == CameraState.ROTATE)
         {
-            _orbitControl.ResetOrbitPoint();
+            _orbitControl.OrbitTarget = null;
         }
     }
 
