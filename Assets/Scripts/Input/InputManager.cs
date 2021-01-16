@@ -1,40 +1,89 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class InputManager : MonoBehaviour
+public class InputManager : MonoBehaviour, IInputDispatcher
 {
-    private List<IInputTypeListener> _inputTypeListeners;
-    private List<IMouseListener> _mouseListeners;
-    private List<IKeyListener> _keyListeners;
+    private EventHandler<InputContextEventArgs> _inputContextEvent;
+    public event EventHandler<InputContextEventArgs> InputContextEventHandler
+    {
+        add
+        {
+            if (!IsDuplicate(_inputContextEvent, value))
+            {
+                _inputContextEvent += value;
+            }
+        }
+        remove { _inputContextEvent -= value; }
+    }
+
+    private EventHandler<MouseButtonEventArgs> _mouseButtonEvent;
+    public event EventHandler<MouseButtonEventArgs> MouseButtonEventHandler
+    {
+        add {
+            if(!IsDuplicate(_mouseButtonEvent, value))
+            {
+                _mouseButtonEvent += value;
+            }
+        }
+        remove { _mouseButtonEvent -= value; }
+    }
+
+    private EventHandler<ScrollEventArgs> _scrollEvent;
+    public event EventHandler<ScrollEventArgs> ScrollEventHandler
+    {
+        add
+        {
+            if (!IsDuplicate(_scrollEvent, value))
+            {
+                _scrollEvent += value;
+            }
+        }
+        remove { _scrollEvent -= value; }
+    }
+
+    private EventHandler<HotKeyEventArgs> _hotKeyEvent;
+    public event EventHandler<HotKeyEventArgs> HotKeyEventHandler
+    {
+        add
+        {
+            if (!IsDuplicate(_hotKeyEvent, value))
+            {
+                _hotKeyEvent += value;
+            }
+        }
+        remove { _hotKeyEvent -= value; }
+    }
+
+    private bool IsDuplicate<T>(EventHandler<T> handler, EventHandler<T> val)
+    {
+        if(handler == null)
+        {
+            return false;
+        }else
+        {
+            return handler.GetInvocationList().Contains(val);
+        }
+    }
+
     private List<int> _mouseButtons;
-    private List<KeyCode> _appKeys;
+    private List<KeyCode> _hotKeys;
 
     private void Awake()
     {
-        List<MonoBehaviour> sceneBehaviours = FindObjectsOfType<MonoBehaviour>().ToList();
+        List<IInputListener> inputListeners = FindObjectsOfType<MonoBehaviour>().OfType<IInputListener>().ToList();
 
-        _inputTypeListeners = new List<IInputTypeListener>();
-        _mouseListeners = new List<IMouseListener>();
-        _keyListeners = new List<IKeyListener>();
-
-        foreach (var behaviour in sceneBehaviours)
+        foreach(IInputListener listener in inputListeners)
         {
-            if (behaviour is IInputTypeListener)
-                _inputTypeListeners.Add(behaviour as IInputTypeListener);
-
-            if (behaviour is IMouseListener)
-                _mouseListeners.Add(behaviour as IMouseListener);
-
-            if (behaviour is IKeyListener)
-                _keyListeners.Add(behaviour as IKeyListener);
+            listener.RegisterDispatcher(this);
         }
 
-        _appKeys = new List<KeyCode>();
-        _appKeys.Add(KeyCode.LeftAlt);
-        _appKeys.Add(KeyCode.RightAlt);
-        _appKeys.Add(KeyCode.LeftControl);
-        _appKeys.Add(KeyCode.RightControl);
+        _hotKeys = new List<KeyCode>();
+        _hotKeys.Add(KeyCode.LeftAlt);
+        _hotKeys.Add(KeyCode.RightAlt);
+        _hotKeys.Add(KeyCode.LeftControl);
+        _hotKeys.Add(KeyCode.RightControl);
 
         _mouseButtons = new List<int>();
         _mouseButtons.Add(0);
@@ -42,16 +91,11 @@ public class InputManager : MonoBehaviour
         _mouseButtons.Add(2);
     }
 
-    // Start is called before the first frame update
     void Start()
     {
-        for (int i = 0; i < _inputTypeListeners.Count; i++)
-        {
-            _inputTypeListeners[i].HandleInputType(InputType.WORLD);
-        }
+        DispatchInputContextEvent(InputContext.WORLD);
     }
 
-    // Update is called once per frame
     void Update()
     {
         //CheckInputType
@@ -65,65 +109,69 @@ public class InputManager : MonoBehaviour
         {
             if (Input.GetMouseButtonDown(button))
             {
-                foreach (var mouseListener in _mouseListeners)
-                {
-                    mouseListener.HandleMouseButtonDown((MouseButton)button);
-                }
+                DispatchMouseButtonEvent((MouseButton)button, ButtonState.DOWN);
             }
 
             if (Input.GetMouseButtonUp(button))
             {
-                foreach (var mouseListener in _mouseListeners)
-                {
-                    mouseListener.HandleMouseButtonUp((MouseButton)button);
-                }
+                DispatchMouseButtonEvent((MouseButton)button, ButtonState.UP);
             }
         }
 
         if(Input.mouseScrollDelta.y != 0)
         {
-            foreach (var mouseListener in _mouseListeners)
-            {
-                mouseListener.HandleScrolling(Input.mouseScrollDelta);
-            }
+            DispatchMouseScrollEvent(Input.mouseScrollDelta);
         }
     }
 
     void CheckKeyboardInput()
     {
-        foreach (var keyCode in _appKeys)
+        foreach (var keyCode in _hotKeys)
         {
             if (Input.GetKeyDown(keyCode))
             {
-                foreach (var keyListener in _keyListeners)
-                {
-                    keyListener.HandleKeyDown(GetAppKey(keyCode));
-                }
+                DispatchHotKeyEvent(GetAppKey(keyCode), ButtonState.DOWN);
             }
 
             if (Input.GetKeyUp(keyCode))
             {
-                foreach (var keyListener in _keyListeners)
-                {
-                    keyListener.HandleKeyUp(GetAppKey(keyCode));
-                }
+                DispatchHotKeyEvent(GetAppKey(keyCode), ButtonState.UP);
             }
         }
     }
 
-    AppKey GetAppKey(KeyCode keyCode)
+    HotKey GetAppKey(KeyCode keyCode)
     {
         switch(keyCode)
         {
             case KeyCode.LeftAlt:
             case KeyCode.RightAlt:
-                return AppKey.ALT;
+                return HotKey.ALT;
             case KeyCode.LeftControl:
             case KeyCode.RightControl:
-                return AppKey.CTRL;
+                return HotKey.CTRL;
             default:
-                return AppKey.UNKNOWN;
+                return HotKey.UNKNOWN;
         }
     }
 
+    void DispatchInputContextEvent(InputContext context)
+    {
+        _inputContextEvent(this, new InputContextEventArgs(context));
+    }
+
+    void DispatchMouseButtonEvent(MouseButton button, ButtonState state)
+    {
+        _mouseButtonEvent(this, new MouseButtonEventArgs(button, state));
+    }
+
+    void DispatchMouseScrollEvent(Vector2 scrollDelta)
+    {
+        _scrollEvent(this, new ScrollEventArgs(scrollDelta));
+    }
+
+    void DispatchHotKeyEvent(HotKey hotKey, ButtonState state)
+    {
+        _hotKeyEvent(this, new HotKeyEventArgs(hotKey, state));
+    }
 }

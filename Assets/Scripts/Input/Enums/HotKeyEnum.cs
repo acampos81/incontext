@@ -1,4 +1,4 @@
-﻿public enum AppKey
+﻿public enum HotKey
 {
     ALT,
     CTRL,

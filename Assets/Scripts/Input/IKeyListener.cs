@@ -1,5 +1,5 @@
 ﻿public interface IKeyListener : IInputTypeListener
 {
-    void HandleKeyDown(AppKey appKey);
-    void HandleKeyUp(AppKey appKey);
+    void HandleKeyDown(HotKey appKey);
+    void HandleKeyUp(HotKey appKey);
 }

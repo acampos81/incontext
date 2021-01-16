@@ -1,4 +1,4 @@
 ﻿public interface IInputTypeListener
 {
-    void HandleInputType(InputType inputType);
+    void HandleInputType(InputContext inputType);
 }

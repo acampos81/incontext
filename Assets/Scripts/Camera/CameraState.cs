@@ -4,5 +4,6 @@
     PAN,
     ROTATE,
     MOUSE_ZOOM,
+    TWEEN,
     IDLE
 }

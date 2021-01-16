@@ -1,7 +1,8 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
-public abstract class CameraControlBase : ICameraControl
+public abstract class TransformControlBase : ITransformControl
 {
-    public abstract void Init();
-    public abstract void UpdateCamera(Transform cameraTransform);
+    public abstract void Init(Transform transform);
+    public abstract void Update();
 }

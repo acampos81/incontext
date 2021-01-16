@@ -1,18 +1,19 @@
 ﻿using UnityEngine;
 
-public class ScrollZoomControl : CameraControlBase
+public class ScrollZoomControl : TransformControlBase
 {
-    private Vector2 _scrollDelta;
+    private Transform _transform;
+    public Vector2 ScrollDelta { get; set; }
 
-    public override void Init()
+    public override void Init(Transform transform)
     {
-        _scrollDelta = Input.mouseScrollDelta;
+        _transform = transform;
     }
 
-    public override void UpdateCamera(Transform cameraTransform)
+    public override void Update()
     {
-        Vector3 position = cameraTransform.position;
-        Vector3 translation = cameraTransform.forward * _scrollDelta.y;
-        cameraTransform.position = position + translation;
+        Vector3 position = _transform.position;
+        Vector3 translation = _transform.forward * ScrollDelta.y;
+        _transform.position = position + translation;
     }
 }

@@ -1,4 +1,4 @@
-﻿public enum InputType
+﻿public enum InputContext
 {
     OBJECT,
     UI,
