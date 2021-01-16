@@ -26,10 +26,10 @@ public static class MathUtil
     /// <returns>Position relative to the plane's origin</returns>
     public static Vector3 PositionFromAngle(float angle, float distance, Vector3 verticalAxis, Vector3 horizontalAxis)
     {
-        var iSin = (int)(Mathf.Sin(angle * Mathf.Deg2Rad) * 1000f);
-        var cSin = (int)(Mathf.Cos(angle * Mathf.Deg2Rad) * 1000f);
-        var fSin = iSin / 1000f;
-        var fCos = cSin / 1000f;
+        var iSin = (int)(Mathf.Sin(angle * Mathf.Deg2Rad) * 10000f);
+        var cSin = (int)(Mathf.Cos(angle * Mathf.Deg2Rad) * 10000f);
+        var fSin = iSin / 10000f;
+        var fCos = cSin / 10000f;
         var v = distance * fSin;
         var h = distance * fCos;
         return (verticalAxis.normalized * v) + (horizontalAxis.normalized * h);
@@ -49,6 +49,22 @@ public static class MathUtil
         var hDot = Vector3.Dot(vector, horizontalAxis.normalized);
         var projectedVector = new Vector3(hDot, 0f, vDot);
         return projectedVector;
+    }
+
+    /// <summary>
+    /// Calculates the slope of a line given it's angle of inclination.
+    /// </summary>
+    /// <param name="angle">Inclination angle</param>
+    /// <returns>The slope of the line in radians. NaN implies a vertical line.</returns>
+    public static float Slope(float angle)
+    {
+        // If an angle indicates a vertical line, return NaN
+        if (angle % 180 == 90)
+            return float.NaN;
+
+        var iTan = (int)(Mathf.Tan(angle * Mathf.Deg2Rad) * 10000f);
+        var fTan = iTan / 10000f;
+        return fTan;
     }
 
     /// <summary>

@@ -5,6 +5,8 @@ public class OrbitControl : MouseControl
     public Transform OrbitTarget { get; set; }
 
     private Vector3 _orbitPoint;
+    private Quaternion _startRotation;
+    private Vector3 _startPosition;
     private float _startDistance;
     private float _startXZAngle;
     private float _startYAngle;
@@ -31,26 +33,26 @@ public class OrbitControl : MouseControl
 
         // Add the horizontal mouse movement to the transform's starting Y-axis rotation.
         // Use the new Y-axis angle to determine a XZ position relative to _orbitPoint
-        var yAngle = _startYAngle - delta.x;
-        var xzPosition = _orbitPoint + MathUtil.PositionFromAngle(yAngle, xzVector.magnitude, Vector3.forward, Vector3.right);
+        var xzPosition = MathUtil.PositionFromAngle(_startYAngle - delta.x, xzVector.magnitude, Vector3.forward, Vector3.right);
 
         // Add the vertical mouse movement to the transform's starting angle from the xzVector.
         // Use the angle to determine the y position.
-        var yPosition = MathUtil.PositionFromAngle(_startXZAngle - delta.y, _startDistance, Vector3.up, xzVector);
+        var yPosition = MathUtil.PositionFromAngle(_startXZAngle - delta.y, _startDistance, Vector3.up, xzPosition);
 
-        // Add the y coordinate to xzPosition.
-        xzPosition.y = yPosition.y;
+        // Update the transform position relative to the orbit point.
+        _transform.position = _orbitPoint + yPosition;
 
-        // Update the transform position
-        _transform.position = xzPosition;
-
-        // Determine the LookAt rotation
+        // Determine the LookAt rotations
         if (OrbitTarget != null)
         {
             _transform.LookAt(_orbitPoint);
         }else
         {
-            _transform.rotation = Quaternion.AngleAxis(90f+yAngle, Vector3.down);
+            var xzOrtho = Vector3.Cross(Vector3.up, xzVector);
+            var vRotation = Quaternion.AngleAxis(delta.x, Vector3.up);
+            var hRotation = Quaternion.AngleAxis(delta.y, xzOrtho);
+            var offsetRotation = hRotation * vRotation;
+            _transform.rotation = offsetRotation * _startRotation;
         }
             
     }
@@ -76,27 +78,40 @@ public class OrbitControl : MouseControl
     private void SetStartParameters()
     {
         var orbitVector = _transform.position - _orbitPoint;
+        var ySign = Mathf.Sign(orbitVector.y);
         var xzVector = MathUtil.ProjectVectorOnPlane(orbitVector, Vector3.forward, Vector3.right);
 
         _startDistance = orbitVector.magnitude;
-        _startXZAngle = MathUtil.VectorAngle(orbitVector, xzVector);
+        _startXZAngle = MathUtil.VectorAngle(orbitVector, xzVector) * ySign;
         _startYAngle = Mathf.Atan2(xzVector.z, xzVector.x) * Mathf.Rad2Deg;
-
-        Debug.Log(string.Format("startDistance:{0}, startX:{1}, startY{2}", _startDistance, _startXZAngle, _startYAngle));
+        _startPosition = _transform.position;
+        _startRotation = _transform.rotation;
     }
 
     public void ResetOrbitPoint()
     {
-        // 1. Scale the camara's forward vector (look direction) by 10 units.
-        var forward = _transform.forward * 10f;
-        
-        // 2. Project the forward vector on the XZ plane.
+        var position = _transform.position;
+        var distance = 10f;
+
+        // 1. Scale the camara's forward vector by the specified distance.
+        var forward = _transform.forward * distance;
+
+        // 2. Project the forward vector, onto the XZ plane.
         var xzVector = MathUtil.ProjectVectorOnPlane(forward, Vector3.forward, Vector3.right);
 
-        // 3. Add the xzVector to the transform's xz position to determine the orbit point.
-        var position = _transform.position;
-        _orbitPoint = new Vector3(position.x + xzVector.x, 0f, position.z + xzVector.z);
+        // 3. If the forward position crosses the ground plane, adjust the distance
+        //    in order to set it on the ground plane.
+        var forwardPosition = position + forward;
+        if ( (position.y > 0f && forwardPosition.y < 0f ) ||
+             (position.y < 0f && forwardPosition.y > 0f ))
+        {
+            var angle = MathUtil.VectorAngle(forward, xzVector);
+            distance = Mathf.Abs(position.y) / Mathf.Sin(angle * Mathf.Deg2Rad);
+            forward = _transform.forward * distance;
+            forwardPosition = position + forward;
+        }
 
-        Debug.Log("OrbitPoint: "+_orbitPoint);
+        // 4. The forwardPosition becomes the orbit point.
+        _orbitPoint = forwardPosition;
     }
 }
