@@ -10,6 +10,7 @@ public abstract class WorldObjectViewBase : MonoBehaviour, IWorldObjectView
     private Stopwatch _stopWatch;
 
     public WorldObjectType objectType;
+    public Vector3 localCenterPoint;
     public List<MeshRenderer> meshRenderers;
 
     private void Awake()

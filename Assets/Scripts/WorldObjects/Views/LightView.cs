@@ -13,6 +13,7 @@ public class LightView : WorldObjectViewBase
         var model = new LightModel();
         model.Type = WorldObjectType.LIGHT;
         model.Positon = transform.position;
+        model.LocalCenterPoint = localCenterPoint;
         model.Rotation = transform.rotation;
         model.Intensity = lightComponent.intensity;
         model.OnModelUpdate = HandleModelUpdate;

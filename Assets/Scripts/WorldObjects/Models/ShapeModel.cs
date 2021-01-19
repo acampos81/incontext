@@ -18,6 +18,8 @@ public class ShapeModel : IShape
         }
     }
 
+    public Vector3 LocalCenterPoint { get; set; }
+
     private Color _color;
     public Color Color
     {

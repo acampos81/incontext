@@ -265,6 +265,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   objectType: 3
+  localCenterPoint: {x: 0, y: 0.1, z: 0}
   meshRenderers:
   - {fileID: 1837857392776020664}
   - {fileID: 3199979240193502817}

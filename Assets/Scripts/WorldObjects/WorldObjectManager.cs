@@ -1,23 +1,29 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class WorldObjectManager : UnitySingleton<WorldObjectManager>
 {
+    public event EventHandler<WorldObjectSelectedEventArgs> WorldObjectSelectedEventHandler;
+
     public uint initialObjectPoolSize;
     public List<WorldObjectMaterials> avaialbleMaterials;
 
-    private List<ICreateObjectDispatcher> _creationDispatchers;
     private Dictionary<WorldObjectType, ObjectPool> _objectPools;
     private Dictionary<Color, WorldObjectMaterials> _objectMaterials;
 
     protected override void OnAwake()
     {
-        _creationDispatchers = FindObjectsOfType<MonoBehaviour>().OfType<ICreateObjectDispatcher>().ToList();
-        foreach (ICreateObjectDispatcher dispatcher in _creationDispatchers)
+        MonoBehaviour[] sceneBehaviours = FindObjectsOfType<MonoBehaviour>();
+
+
+        foreach (var behaviour in sceneBehaviours)
         {
-            dispatcher.OnCreateObject += HandleCreateObject;
+            if(behaviour is ICreateObjectDispatcher dispatcher)
+                dispatcher.OnCreateObject += HandleCreateObject;
+
+            if (behaviour is IWorldObjectSelectedListener listener)
+                WorldObjectSelectedEventHandler += listener.HandleWorldObjectSelected;
         }
 
         InitializeMaterials();
@@ -83,7 +89,8 @@ public class WorldObjectManager : UnitySingleton<WorldObjectManager>
 
     public void WorldObjectClicked(IWorldObjectView wordlObject, MouseClickType clickType)
     {
-
+        if (WorldObjectSelectedEventHandler != null)
+            WorldObjectSelectedEventHandler(this, new WorldObjectSelectedEventArgs(wordlObject.GetModel(), clickType));
     }
 
     public Material GetIdleMaterial(Color color)

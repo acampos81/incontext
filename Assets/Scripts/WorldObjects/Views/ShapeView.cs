@@ -10,6 +10,7 @@ public class ShapeView : WorldObjectViewBase
         model.Type = objectType;
         model.Color = Color.gray;
         model.Positon = transform.position;
+        model.LocalCenterPoint = localCenterPoint;
         model.OnModelUpdate = HandleModelUpdate;
         _model = model;
     }

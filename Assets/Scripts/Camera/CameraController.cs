@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 [RequireComponent(typeof(Camera))]
 public class CameraController : InputListenerBase,
-    IInputContextListener,
+    IWorldObjectSelectedListener,
     IMouseButtonStateListener,
+    IInputContextListener,
     IScrollWheelListener,
     IHotKeyListener
 {
@@ -27,8 +29,9 @@ public class CameraController : InputListenerBase,
         _scrollZoomControl.Init(transform);
 
         // Need to maintain a refernce to _orbitControl since other states
-        // can affect its focus target.
+        // can affect its orbit point.
         _orbitControl = new OrbitControl();
+        _orbitControl.Init(transform);
 
         _transformControls = new Dictionary<CameraState, ITransformControl>
         {
@@ -59,22 +62,24 @@ public class CameraController : InputListenerBase,
     {
         if (_currentState == newState) return;
 
-        _currentState = newState;
         _activeControl = null;
-
-        if (_currentState != CameraState.IDLE)
+        if (newState != CameraState.IDLE)
         {
-            _activeControl = _transformControls[_currentState];
+            _activeControl = _transformControls[newState];
             _activeControl.Init(transform);
         }
 
-        // Set OrbitControl's rotation point if the camera pans, or rotates
-        // It can also be reset by zooming past the rotation point, but that's
-        // handled in OrbitControl's Init method.
-        if(_currentState == CameraState.PAN || _currentState == CameraState.ROTATE)
+        // Reset OrbitControl's orbit point if the previous camera state
+        // was PAN or ROTATE. It can also be reset by zooming past the
+        // orbit point but that's handled in OrbitControl's Init method.
+        if (newState == CameraState.IDLE &&
+          (_currentState == CameraState.PAN ||
+           _currentState == CameraState.ROTATE))
         {
-            _orbitControl.OrbitTarget = null;
+            _orbitControl.ResetOrbitPoint();
         }
+
+        _currentState = newState;
     }
 
     public void HandleInputContext(object sender, InputContextEventArgs args)
@@ -139,8 +144,19 @@ public class CameraController : InputListenerBase,
             _altDown = args.state == ButtonState.DOWN;
     }
 
-    void HandleWorldObjectSelected(object sender, EventArgs args)
+    public void HandleWorldObjectSelected(object sender, WorldObjectSelectedEventArgs args)
     {
+        if(args.clickType == MouseClickType.DOUBLE)
+        {
+            var model = args.objectModel;
+            var objectCenter = model.Positon + model.LocalCenterPoint;
+            var cameraOffset = (transform.position - objectCenter).normalized * 3f;
+            var cameraPosition = objectCenter + cameraOffset;
 
+            Sequence seq = DOTween.Sequence();
+            seq.Append(transform.DOMove(cameraPosition, .3f).SetEase(Ease.OutQuad));
+            seq.Insert(0f,transform.DOLookAt(objectCenter, .3f).SetEase(Ease.OutQuad));
+            seq.OnComplete(() => _orbitControl.OrbitPoint = objectCenter);
+        }
     }
 }

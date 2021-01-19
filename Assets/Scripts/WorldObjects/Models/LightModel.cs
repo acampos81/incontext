@@ -18,6 +18,8 @@ public class LightModel : ILight
         }
     }
 
+    public Vector3 LocalCenterPoint { get; set; }
+
     private Quaternion _rotation;
     public Quaternion Rotation
     {
@@ -38,10 +40,5 @@ public class LightModel : ILight
             if (OnModelUpdate != null)
                 OnModelUpdate();
         }
-    }
-
-    public LightModel()
-    {
-        Type = WorldObjectType.LIGHT;
     }
 }
