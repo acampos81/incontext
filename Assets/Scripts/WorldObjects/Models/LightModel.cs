@@ -10,7 +10,7 @@ public class LightModel : ILight
     public Vector3 LocalCenterPoint { get; set; }
 
     private Vector3 _position;
-    public Vector3 Positon
+    public Vector3 Position
     {
         get { return _position; }
         set

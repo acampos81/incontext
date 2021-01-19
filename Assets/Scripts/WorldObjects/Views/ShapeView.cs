@@ -9,7 +9,7 @@ public class ShapeView : WorldObjectViewBase
         var model = new ShapeModel();
         model.Type = objectType;
         model.Color = Color.gray;
-        model.Positon = transform.position;
+        model.Position = transform.position;
         model.LocalCenterPoint = localCenterPoint;
         model.OnModelUpdate += HandleModelUpdate;
         _model = model;
@@ -22,7 +22,7 @@ public class ShapeView : WorldObjectViewBase
 
     private void HandleModelUpdate()
     {
-        transform.position = _model.Positon;
+        transform.position = _model.Position;
     }
 
     private void OnMouseEnter()

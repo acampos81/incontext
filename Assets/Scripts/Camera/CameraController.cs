@@ -149,7 +149,7 @@ public class CameraController : InputListenerBase,
         if(args.clickType == MouseClickType.DOUBLE)
         {
             var model = args.objectModel;
-            var objectCenter = model.Positon + model.LocalCenterPoint;
+            var objectCenter = model.Position + model.LocalCenterPoint;
             var cameraOffset = (transform.position - objectCenter).normalized * 3f;
             var cameraPosition = objectCenter + cameraOffset;
 

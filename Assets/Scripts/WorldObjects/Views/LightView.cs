@@ -12,7 +12,7 @@ public class LightView : WorldObjectViewBase
     {
         var model = new LightModel();
         model.Type = WorldObjectType.LIGHT;
-        model.Positon = transform.position;
+        model.Position = transform.position;
         model.LocalCenterPoint = localCenterPoint;
         model.Rotation = transform.rotation;
         model.Intensity = lightComponent.intensity;
@@ -30,7 +30,7 @@ public class LightView : WorldObjectViewBase
 
     private void HandleModelUpdate()
     {
-        transform.position = _model.Positon;
+        transform.position = _model.Position;
         transform.rotation = _model.Rotation;
         lightComponent.intensity = _model.Intensity;
     }

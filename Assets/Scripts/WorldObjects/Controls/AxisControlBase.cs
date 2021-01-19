@@ -48,7 +48,7 @@ public abstract class AxisControlBase : MonoBehaviour,
 
     private void HandleModelUpdate()
     {
-        container.position = _model.Positon;
+        container.position = _model.Position;
         container.rotation = _model.Rotation;
     }
 
