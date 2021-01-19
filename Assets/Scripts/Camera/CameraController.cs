@@ -3,7 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(Camera))]
-public class CameraController : InputListenerBase, IInputListener
+public class CameraController : InputListenerBase,
+    IInputContextListener,
+    IMouseButtonStateListener,
+    IScrollWheelListener,
+    IHotKeyListener
 {
     private Dictionary<CameraState, ITransformControl> _transformControls;
     private CameraState _currentState;
@@ -51,7 +55,7 @@ public class CameraController : InputListenerBase, IInputListener
         _activeControl.Update();
     }
 
-    void UpdateState(CameraState newState)
+    void UpdateCameraState(CameraState newState)
     {
         if (_currentState == newState) return;
 
@@ -73,23 +77,7 @@ public class CameraController : InputListenerBase, IInputListener
         }
     }
 
-    protected override void RegisterEvents()
-    {
-        Dispatcher.InputContextEventHandler += HandleInputContext;
-        Dispatcher.MouseButtonEventHandler += HandleMouseButton;
-        Dispatcher.ScrollEventHandler += HandleScrolling;
-        Dispatcher.HotKeyEventHandler += HandleHotKey;
-    }
-
-    protected override void DeregisterEvents()
-    {
-        Dispatcher.InputContextEventHandler -= HandleInputContext;
-        Dispatcher.MouseButtonEventHandler -= HandleMouseButton;
-        Dispatcher.ScrollEventHandler -= HandleScrolling;
-        Dispatcher.HotKeyEventHandler -= HandleHotKey;
-    }
-
-    void HandleInputContext(object sender, InputContextEventArgs args)
+    public void HandleInputContext(object sender, InputContextEventArgs args)
     {
         this.enabled = args.context == InputContext.WORLD;
         if(!this.enabled)
@@ -98,7 +86,7 @@ public class CameraController : InputListenerBase, IInputListener
         }
     }
 
-    void HandleMouseButton(object sender, MouseButtonEventArgs args)
+    public void HandleMouseButtonState(object sender, MouseButtonStateEventArgs args)
     {
         if(args.state == ButtonState.DOWN && _activeMouseButton == MouseButton.NONE)
         {
@@ -116,28 +104,28 @@ public class CameraController : InputListenerBase, IInputListener
             case MouseButton.LEFT:
                 if (_altDown)
                 {
-                    UpdateState(CameraState.ORBIT);
+                    UpdateCameraState(CameraState.ORBIT);
                 }
                 break;
             case MouseButton.RIGHT:
                 if(_altDown)
                 {
-                    UpdateState(CameraState.MOUSE_ZOOM);
+                    UpdateCameraState(CameraState.MOUSE_ZOOM);
                 } else
                 {
-                    UpdateState(CameraState.ROTATE);
+                    UpdateCameraState(CameraState.ROTATE);
                 }
                 break;
             case MouseButton.MIDDLE:
-                UpdateState(CameraState.PAN);
+                UpdateCameraState(CameraState.PAN);
                 break;
             case MouseButton.NONE:
-                UpdateState(CameraState.IDLE);
+                UpdateCameraState(CameraState.IDLE);
                 break;
         }    
     }
 
-    void HandleScrolling(object sender, ScrollEventArgs args)
+    public void HandleScrollWheel(object sender, ScrollWheelEventArgs args)
     {
         if (_currentState != CameraState.IDLE) return;
 
@@ -145,7 +133,7 @@ public class CameraController : InputListenerBase, IInputListener
         _scrollZoomControl.Update();
     }
 
-    void HandleHotKey(object sender, HotKeyEventArgs args)
+    public void HandleHotKeyState(object sender, HotKeyEventArgs args)
     {
         if (args.hotKey == HotKey.ALT)
             _altDown = args.state == ButtonState.DOWN;

@@ -3,69 +3,16 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class InputManager : MonoBehaviour, IInputDispatcher
+public class InputManager : MonoBehaviour,
+    IInputContextDispatcher,
+    IMouseButtonStateDispatcher,
+    IScrollWheelDispatcher,
+    IHotKeyStateDispatcher
 {
-    private EventHandler<InputContextEventArgs> _inputContextEvent;
-    public event EventHandler<InputContextEventArgs> InputContextEventHandler
-    {
-        add
-        {
-            if (!IsDuplicate(_inputContextEvent, value))
-            {
-                _inputContextEvent += value;
-            }
-        }
-        remove { _inputContextEvent -= value; }
-    }
-
-    private EventHandler<MouseButtonEventArgs> _mouseButtonEvent;
-    public event EventHandler<MouseButtonEventArgs> MouseButtonEventHandler
-    {
-        add {
-            if(!IsDuplicate(_mouseButtonEvent, value))
-            {
-                _mouseButtonEvent += value;
-            }
-        }
-        remove { _mouseButtonEvent -= value; }
-    }
-
-    private EventHandler<ScrollEventArgs> _scrollEvent;
-    public event EventHandler<ScrollEventArgs> ScrollEventHandler
-    {
-        add
-        {
-            if (!IsDuplicate(_scrollEvent, value))
-            {
-                _scrollEvent += value;
-            }
-        }
-        remove { _scrollEvent -= value; }
-    }
-
-    private EventHandler<HotKeyEventArgs> _hotKeyEvent;
-    public event EventHandler<HotKeyEventArgs> HotKeyEventHandler
-    {
-        add
-        {
-            if (!IsDuplicate(_hotKeyEvent, value))
-            {
-                _hotKeyEvent += value;
-            }
-        }
-        remove { _hotKeyEvent -= value; }
-    }
-
-    private bool IsDuplicate<T>(EventHandler<T> handler, EventHandler<T> val)
-    {
-        if(handler == null)
-        {
-            return false;
-        }else
-        {
-            return handler.GetInvocationList().Contains(val);
-        }
-    }
+    public event EventHandler<InputContextEventArgs> InputContextEventHandler;
+    public event EventHandler<MouseButtonStateEventArgs> MouseButtonStateEventHandler;
+    public event EventHandler<ScrollWheelEventArgs> ScrollWheelEventHandler;
+    public event EventHandler<HotKeyEventArgs> HotKeyStateEventHandler;
 
     private List<int> _mouseButtons;
     private List<KeyCode> _hotKeys;
@@ -76,7 +23,8 @@ public class InputManager : MonoBehaviour, IInputDispatcher
 
         foreach(IInputListener listener in inputListeners)
         {
-            listener.RegisterDispatcher(this);
+            listener.ListenerStateEventHandler += HandleListenerState;
+            RegisterListenerEvents(listener);
         }
 
         _hotKeys = new List<KeyCode>();
@@ -155,23 +103,66 @@ public class InputManager : MonoBehaviour, IInputDispatcher
         }
     }
 
+    public void RegisterListenerEvents(IInputListener listener)
+    {
+        if (listener is IInputContextListener contextListener)
+            InputContextEventHandler += contextListener.HandleInputContext;
+
+        if (listener is IMouseButtonStateListener mouseListener)
+            MouseButtonStateEventHandler += mouseListener.HandleMouseButtonState;
+
+        if (listener is IScrollWheelListener scrollListener)
+            ScrollWheelEventHandler += scrollListener.HandleScrollWheel;
+
+        if (listener is IHotKeyListener hotKeyListener)
+            HotKeyStateEventHandler += hotKeyListener.HandleHotKeyState;
+    }
+
+    public void DeregisterListenerEvents(IInputListener listener)
+    {
+        if (listener is IInputContextListener contextListener)
+            InputContextEventHandler -= contextListener.HandleInputContext;
+
+        if (listener is IMouseButtonStateListener mouseListener)
+            MouseButtonStateEventHandler -= mouseListener.HandleMouseButtonState;
+
+        if (listener is IScrollWheelListener scrollListener)
+            ScrollWheelEventHandler -= scrollListener.HandleScrollWheel;
+
+        if (listener is IHotKeyListener hotKeyListener)
+            HotKeyStateEventHandler -= hotKeyListener.HandleHotKeyState;
+    }
+
+    void HandleListenerState(object sender, ListenerStateEventArgs args)
+    {
+        var listener = (IInputListener)sender;
+
+        if (args.isActive)
+        {
+            RegisterListenerEvents(listener);
+        } else
+        {
+            DeregisterListenerEvents(listener);
+        }
+    }
+
     void DispatchInputContextEvent(InputContext context)
     {
-        _inputContextEvent(this, new InputContextEventArgs(context));
+        InputContextEventHandler(this, new InputContextEventArgs(context));
     }
 
     void DispatchMouseButtonEvent(MouseButton button, ButtonState state)
     {
-        _mouseButtonEvent(this, new MouseButtonEventArgs(button, state));
+        MouseButtonStateEventHandler(this, new MouseButtonStateEventArgs(button, state));
     }
 
     void DispatchMouseScrollEvent(Vector2 scrollDelta)
     {
-        _scrollEvent(this, new ScrollEventArgs(scrollDelta));
+        ScrollWheelEventHandler(this, new ScrollWheelEventArgs(scrollDelta));
     }
 
     void DispatchHotKeyEvent(HotKey hotKey, ButtonState state)
     {
-        _hotKeyEvent(this, new HotKeyEventArgs(hotKey, state));
+        HotKeyStateEventHandler(this, new HotKeyEventArgs(hotKey, state));
     }
 }

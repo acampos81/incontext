@@ -1,34 +1,98 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class WorldObjectManager : MonoBehaviour
+public class WorldObjectManager : UnitySingleton<WorldObjectManager>
 {
     public uint initialObjectPoolSize;
+    public List<WorldObjectMaterials> avaialbleMaterials;
 
     private List<ICreateObjectDispatcher> _creationDispatchers;
+    private Dictionary<WorldObjectType, ObjectPool> _objectPools;
+    private Dictionary<Color, WorldObjectMaterials> _objectMaterials;
 
-    void Awake()
+    protected override void OnAwake()
     {
         _creationDispatchers = FindObjectsOfType<MonoBehaviour>().OfType<ICreateObjectDispatcher>().ToList();
-        foreach(ICreateObjectDispatcher dispatcher in _creationDispatchers)
+        foreach (ICreateObjectDispatcher dispatcher in _creationDispatchers)
         {
             dispatcher.OnCreateObject += HandleCreateObject;
         }
 
-        WorldObjectFactory.Instance.InitializePool(initialObjectPoolSize, WorldObjectType.SPHERE);
-        WorldObjectFactory.Instance.InitializePool(initialObjectPoolSize, WorldObjectType.CUBE);
-        WorldObjectFactory.Instance.InitializePool(initialObjectPoolSize, WorldObjectType.CYLINDER);
-        WorldObjectFactory.Instance.InitializePool(initialObjectPoolSize, WorldObjectType.LIGHT);
+        InitializeMaterials();
+
+        _objectPools = new Dictionary<WorldObjectType, ObjectPool>();
+        InitializePool(initialObjectPoolSize, WorldObjectType.SPHERE);
+        InitializePool(initialObjectPoolSize, WorldObjectType.CUBE);
+        InitializePool(initialObjectPoolSize, WorldObjectType.CYLINDER);
+        InitializePool(initialObjectPoolSize, WorldObjectType.LIGHT);
     }
 
-    private void Start()
+    void InitializePool(uint size, WorldObjectType objectType)
     {
+        string resourcePath = null;
+        switch (objectType)
+        {
+            case WorldObjectType.SPHERE:
+                resourcePath = "Prefabs/WorldObjects/SphereWO";
+                break;
+            case WorldObjectType.CUBE:
+                resourcePath = "Prefabs/WorldObjects/CubeWO";
+                break;
+            case WorldObjectType.CYLINDER:
+                resourcePath = "Prefabs/WorldObjects/CylinderWO";
+                break;
+            case WorldObjectType.LIGHT:
+                resourcePath = "Prefabs/WorldObjects/LightWO";
+                break;
+            default:
+                throw new ArgumentException("Cannot initialize pool for unknown type:" + objectType);
+        }
 
+        var template = Resources.Load<GameObject>(resourcePath);
+        var objectName = objectType.ToString();
+        var container = new GameObject(string.Format("{0} Pool", objectName)).transform;
+        container.transform.position = Vector3.down * 20f;
+        container.transform.SetParent(this.transform);
+        container.gameObject.SetActive(false);
+        _objectPools[objectType] = new ObjectPool(size, template, container, objectName);
+    }
+
+    void InitializeMaterials()
+    {
+        _objectMaterials = new Dictionary<Color, WorldObjectMaterials>();
+        foreach (var objMat in avaialbleMaterials)
+            _objectMaterials[objMat.color] = objMat;
     }
 
     private void HandleCreateObject(object sender, CreateObjectEventArgs args)
     {
-        var worldObject = WorldObjectFactory.Instance.GetWorldObject(args.objectType);
+        var worldObject = GetWorldObject(args.objectType);
+    }
+
+    public GameObject GetWorldObject(WorldObjectType objectType)
+    {
+        return _objectPools[objectType].Next();
+    }
+
+    public void RemoveWorldObject(WorldObjectType objectType, GameObject worldObject)
+    {
+        _objectPools[objectType].Store(worldObject);
+    }
+
+    public void WorldObjectClicked(IWorldObjectView wordlObject, MouseClickType clickType)
+    {
+
+    }
+
+    public Material GetIdleMaterial(Color color)
+    {
+        return _objectMaterials[color].diffuseMaterial;
+    }
+
+    public Material GetHighlightMaterial(Color color)
+    {
+        return _objectMaterials[color].highlightMaterial;
     }
 }
