@@ -3,9 +3,11 @@ using UnityEngine;
 
 public class LightModel : ILight
 {
-    public Action OnModelUpdate;
+    public Action OnModelUpdate { get; set; }
 
     public WorldObjectType Type { get; set; }
+
+    public Vector3 LocalCenterPoint { get; set; }
 
     private Vector3 _position;
     public Vector3 Positon
@@ -13,12 +15,11 @@ public class LightModel : ILight
         get { return _position; }
         set
         {
+            _position = value;
             if (OnModelUpdate != null)
                 OnModelUpdate();
         }
     }
-
-    public Vector3 LocalCenterPoint { get; set; }
 
     private Quaternion _rotation;
     public Quaternion Rotation
@@ -26,6 +27,7 @@ public class LightModel : ILight
         get { return _rotation; }
         set
         {
+            _rotation = value;
             if (OnModelUpdate != null)
                 OnModelUpdate();
         }
@@ -37,6 +39,7 @@ public class LightModel : ILight
         get { return _intensity; }
         set
         {
+            _intensity = value;
             if (OnModelUpdate != null)
                 OnModelUpdate();
         }

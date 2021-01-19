@@ -11,7 +11,7 @@ public class ShapeView : WorldObjectViewBase
         model.Color = Color.gray;
         model.Positon = transform.position;
         model.LocalCenterPoint = localCenterPoint;
-        model.OnModelUpdate = HandleModelUpdate;
+        model.OnModelUpdate += HandleModelUpdate;
         _model = model;
     }
 
@@ -23,7 +23,6 @@ public class ShapeView : WorldObjectViewBase
     private void HandleModelUpdate()
     {
         transform.position = _model.Positon;
-        UpdateMaterial(WorldObjectManager.Instance.GetHighlightMaterial(_model.Color));
     }
 
     private void OnMouseEnter()

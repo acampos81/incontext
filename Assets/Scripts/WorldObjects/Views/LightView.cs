@@ -16,7 +16,7 @@ public class LightView : WorldObjectViewBase
         model.LocalCenterPoint = localCenterPoint;
         model.Rotation = transform.rotation;
         model.Intensity = lightComponent.intensity;
-        model.OnModelUpdate = HandleModelUpdate;
+        model.OnModelUpdate += HandleModelUpdate;
         _model = model;
 
         _color = WorldObjectManager.Instance.avaialbleMaterials[4].color;
