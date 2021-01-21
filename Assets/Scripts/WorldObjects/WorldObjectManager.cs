@@ -5,10 +5,13 @@ using UnityEngine;
 
 public class WorldObjectManager : UnitySingleton<WorldObjectManager>
 {
+    private static Vector3 WORLD_OBJECT_START_POSITION = new Vector3(0f, 1f, 0f);
+
     public event EventHandler<WorldObjectSelectedEventArgs> WorldObjectSelectedEventHandler;
 
     public uint initialObjectPoolSize;
 
+    private IWorldObjectView _selectedView;
     private Dictionary<WorldObjectType, ObjectPool> _objectPools;
     private Transform _worldObjectContainer;
 
@@ -72,8 +75,11 @@ public class WorldObjectManager : UnitySingleton<WorldObjectManager>
     private void HandleCreateObject(object sender, CreateObjectEventArgs args)
     {
         var objView = AddViewInstance(args.objectType);
+
         if (objView.Model == null)
             SetViewModel(objView, args.objectType);
+
+        objView.Model.Position = WORLD_OBJECT_START_POSITION;
     }
 
     private IWorldObjectView AddViewInstance(WorldObjectType objectType)
@@ -85,24 +91,28 @@ public class WorldObjectManager : UnitySingleton<WorldObjectManager>
 
     private void SetViewModel(IWorldObjectView objectView, WorldObjectType objectType)
     {
+        IWorldObjectModel objectModel;
+
         if (objectType == WorldObjectType.LIGHT)
         {
             var lightView = (LightView)objectView;
-            var lightModel = new LightModel();
-            lightModel.Type = objectType;
-            lightModel.LocalCenterPoint = lightView.localCenterPoint;
-            lightModel.Intensity = lightView.lightComponent.intensity;
-            lightModel.ConeAngle = lightView.lightComponent.spotAngle;
-            lightView.Model = lightModel;
+            objectModel = new LightModel();
+            objectModel.LocalCenterPoint = lightView.localCenterPoint;
+            ((ILightModel)objectModel).Intensity = lightView.lightComponent.intensity;
+            ((ILightModel)objectModel).ConeAngle = lightView.lightComponent.spotAngle;
         } else
         {
             var shapeView = (ShapeView)objectView;
-            var shapeModel = new ShapeModel();
-            shapeModel.Type = objectType;
-            shapeModel.LocalCenterPoint = shapeView.localCenterPoint;
-            shapeModel.Color = WorldObjectMaterials.Instance.ShapeDefaultColor;
-            shapeView.Model = shapeModel;
+            objectModel = new ShapeModel();
+            objectModel.LocalCenterPoint = shapeView.localCenterPoint;
+            ((IShapeModel)objectModel).Color = WorldObjectMaterials.Instance.ShapeDefaultColor;
         }
+
+        objectModel.Type = objectType;
+        objectModel.Name = objectType.ToString();
+        objectModel.Position = Vector3.zero;
+        objectModel.Rotation = Quaternion.identity;
+        objectView.Model = objectModel;
     }
 
     public void RemoveViewInstance(WorldObjectType objectType, GameObject worldObject)
@@ -110,10 +120,26 @@ public class WorldObjectManager : UnitySingleton<WorldObjectManager>
         _objectPools[objectType].Store(worldObject);
     }
 
-    public void WorldObjectClicked(IWorldObjectView wordlObject, MouseClickType clickType)
+    public void WorldObjectClicked(IWorldObjectView worldObject, MouseClickType clickType)
     {
+        if (_selectedView != null)
+        {
+            _selectedView.SetSelected(false);
+            _selectedView = null;
+        }
+
+        IWorldObjectModel model = null;
+        if(worldObject != null)
+        {
+            model = worldObject.Model;
+            _selectedView = worldObject;
+            _selectedView.SetSelected(true);
+            //if (WorldObjectSelectedEventHandler != null)
+            //    WorldObjectSelectedEventHandler(this, new WorldObjectSelectedEventArgs(worldObject.Model, clickType));
+        }
+
         if (WorldObjectSelectedEventHandler != null)
-            WorldObjectSelectedEventHandler(this, new WorldObjectSelectedEventArgs(wordlObject.Model, clickType));
+            WorldObjectSelectedEventHandler(this, new WorldObjectSelectedEventArgs(model, clickType));
     }
 
     public void HandleIOProcess(object sender, IOProcessEventArgs args)

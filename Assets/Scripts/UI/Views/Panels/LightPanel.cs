@@ -1,26 +1,32 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 public class LightPanel : UIPanel, IWorldObjectSelectedListener
 {
+    public InputField nameField;
     public InputField xPosField;
     public InputField yPosField;
     public InputField zPosField;
     public InputField xRotField;
     public InputField yRotField;
     public InputField zRotField;
-    public Slider slider;
+    public Slider intesitySlider;
+    public Slider coneAngleSlider;
 
     private ILightModel _lightModel;
 
     void Awake()
     {
-        slider.maxValue = 20f;
+        intesitySlider.minValue = 1f;
+        intesitySlider.maxValue = 10f;
+        coneAngleSlider.minValue = 30f;
+        coneAngleSlider.maxValue = 180f;
     }
 
     private void UpdateUI()
     {
+        nameField.text = _lightModel.Name;
+
         var position = _lightModel.Position;
         xPosField.text = position.x.ToString();
         yPosField.text = position.y.ToString();
@@ -31,7 +37,13 @@ public class LightPanel : UIPanel, IWorldObjectSelectedListener
         yRotField.text = rotation.y.ToString();
         zRotField.text = rotation.z.ToString();
 
-        slider.value = _lightModel.Intensity;
+        intesitySlider.value = _lightModel.Intensity;
+        coneAngleSlider.value = _lightModel.ConeAngle;
+    }
+
+    public void UpdateName()
+    {
+        _lightModel.Name = nameField.text;
     }
 
     public void UpdatePosition()
@@ -56,12 +68,18 @@ public class LightPanel : UIPanel, IWorldObjectSelectedListener
     {
         //Setting min max will trigger this event before a model is set.
         if(_lightModel != null)
-            _lightModel.Intensity = slider.value;
+            _lightModel.Intensity = intesitySlider.value;
+    }
+
+    public void UpdateConeAngle()
+    {
+        if (_lightModel != null)
+            _lightModel.ConeAngle = coneAngleSlider.value;
     }
 
     public void HandleWorldObjectSelected(object sender, WorldObjectSelectedEventArgs args)
     {
-        if (args.objectModel.Type != WorldObjectType.LIGHT) return;
+        if (args.objectModel == null || args.objectModel.Type != WorldObjectType.LIGHT) return;
 
         if (_lightModel != null)
             _lightModel.OnModelUpdate -= UpdateUI;

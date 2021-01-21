@@ -4,6 +4,7 @@ using UnityEngine;
 
 public interface IWorldObjectModel
 {
+    string Name { get; set; }
     WorldObjectType Type { get; set; }
     Vector3 Position { get; set; }
     Quaternion Rotation { get; set; }

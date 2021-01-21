@@ -46,7 +46,6 @@ public class InputManager : MonoBehaviour,
 
     void Update()
     {
-        //CheckInputType
         CheckMouseInput();
         CheckKeyboardInput();
     }

@@ -3,26 +3,42 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class UIManager : MonoBehaviour, IWorldObjectSelectedListener
+public class UIManager : MonoBehaviour,
+    IUIStateDispatcher,
+    IUIStateListener,
+    IWorldObjectSelectedListener
 {
     public event EventHandler<UIStateUpdateEventArgs> UIStateUpdateEventHandler;
 
-    public List<StatePanels> panelsByState;
-
     void Awake()
     {
-        List<IUIStateListener> stateListeners = FindObjectsOfType<MonoBehaviour>().OfType<IUIStateListener>().ToList();
+        List<IUIPanel> uiPanels = FindObjectsOfType<MonoBehaviour>().OfType<IUIPanel>().ToList();
 
-        foreach(var stateListener in stateListeners)
+        foreach(var panel in uiPanels)
         {
-            UIStateUpdateEventHandler += stateListener.HandleUIStateUpdate;
+            if(panel is IUIStateListener stateListener)
+                UIStateUpdateEventHandler += stateListener.HandleUIStateUpdate;
+
+            if (panel is IUIStateDispatcher stateDispatcher)
+                stateDispatcher.UIStateUpdateEventHandler += HandleUIStateUpdate;
         }
 
         UpdateUIState(UIState.WORLD);
     }
 
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            WorldObjectManager.Instance.WorldObjectClicked(null, MouseClickType.SINGLE);
+            UpdateUIState(UIState.WORLD);
+        }
+    }
+
     public void HandleWorldObjectSelected(object sender, WorldObjectSelectedEventArgs args)
     {
+        if (args.objectModel == null) return;
+
         UIState state;
         if (args.objectModel.Type == WorldObjectType.LIGHT)
         {
@@ -32,6 +48,11 @@ public class UIManager : MonoBehaviour, IWorldObjectSelectedListener
             state = UIState.SHAPE_DATA;
         }
         UpdateUIState(state);
+    }
+
+    public void HandleUIStateUpdate(object sender, UIStateUpdateEventArgs args)
+    {
+        UpdateUIState(args.state);
     }
 
     private void UpdateUIState(UIState state)

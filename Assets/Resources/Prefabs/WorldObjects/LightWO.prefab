@@ -159,7 +159,7 @@ Light:
   m_Intensity: 1
   m_Range: 10
   m_SpotAngle: 30
-  m_InnerSpotAngle: 21.80208
+  m_InnerSpotAngle: 1
   m_CookieSize: 10
   m_Shadows:
     m_Type: 1
@@ -266,7 +266,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   objectType: 3
-  localCenterPoint: {x: 0, y: 0.1, z: 0}
+  localCenterPoint: {x: 0, y: 0, z: 0}
   lightComponent: {fileID: 2522866517341670444}
 --- !u!114 &6449525239978493432
 MonoBehaviour:
@@ -280,8 +280,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 299bd89a7f9794108b1b78f64f0e2496, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  defaultMaterial: {fileID: 0}
-  highlightMaterial: {fileID: 0}
+  _defaultMaterial: {fileID: 0}
+  _highlightMaterial: {fileID: 0}
   meshRenderers:
   - {fileID: 1837857392776020664}
   - {fileID: 3199979240193502817}

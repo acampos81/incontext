@@ -1,13 +1,16 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 
 public class ShapePanel : UIPanel, IWorldObjectSelectedListener
 {
-    public InputField xField;
-    public InputField yField;
-    public InputField zField;
+    public InputField nameField;
+    public InputField xPosField;
+    public InputField yPosField;
+    public InputField zPosField;
+    public InputField xRotField;
+    public InputField yRotField;
+    public InputField zRotField;
     public Image colorImage;
     public List<Image> colorPickerImages;
 
@@ -24,19 +27,42 @@ public class ShapePanel : UIPanel, IWorldObjectSelectedListener
 
     private void UpdateUI()
     {
-        xField.text = _shapeModel.Position.x.ToString();
-        yField.text = _shapeModel.Position.y.ToString();
-        zField.text = _shapeModel.Position.z.ToString();
+        nameField.text = _shapeModel.Name;
+
+        var position = _shapeModel.Position;
+        xPosField.text = position.x.ToString();
+        yPosField.text = position.y.ToString();
+        zPosField.text = position.z.ToString();
+
+        var rotation = _shapeModel.Rotation.eulerAngles;
+        xRotField.text = rotation.x.ToString();
+        yRotField.text = rotation.y.ToString();
+        zRotField.text = rotation.z.ToString();
+
         colorImage.color = _shapeModel.Color;
+    }
+
+    public void UpdateName()
+    {
+        _shapeModel.Name = nameField.text;
     }
 
     public void UpdatePosition()
     {
-        var x = float.Parse(xField.text);
-        var y = float.Parse(yField.text);
-        var z = float.Parse(zField.text);
+        var x = float.Parse(xPosField.text);
+        var y = float.Parse(yPosField.text);
+        var z = float.Parse(zPosField.text);
         var position = new Vector3(x, y, z);
         _shapeModel.Position = position;
+    }
+
+    public void UpdateRotation()
+    {
+        var x = float.Parse(xRotField.text);
+        var y = float.Parse(yRotField.text);
+        var z = float.Parse(zRotField.text);
+        var rotation = new Vector3(x, y, z);
+        _shapeModel.Rotation = Quaternion.Euler(rotation);
     }
 
     public void UpdateColor(Image image)
@@ -46,7 +72,7 @@ public class ShapePanel : UIPanel, IWorldObjectSelectedListener
 
     public void HandleWorldObjectSelected(object sender, WorldObjectSelectedEventArgs args)
     {
-        if (args.objectModel.Type == WorldObjectType.LIGHT) return;
+        if (args.objectModel == null || args.objectModel.Type == WorldObjectType.LIGHT) return;
 
         if (_shapeModel != null)
             _shapeModel.OnModelUpdate -= UpdateUI;
@@ -58,11 +84,11 @@ public class ShapePanel : UIPanel, IWorldObjectSelectedListener
         _shapeModel.OnModelUpdate += UpdateUI;
     }
 
-    //void OnDisable()
-    //{
-    //    if(_shapeModel != null)
-    //        _shapeModel.OnModelUpdate -= UpdateUI;
+    void OnDisable()
+    {
+        if (_shapeModel != null)
+            _shapeModel.OnModelUpdate -= UpdateUI;
 
-    //    _shapeModel = null;
-    //}
+        _shapeModel = null;
+    }
 }

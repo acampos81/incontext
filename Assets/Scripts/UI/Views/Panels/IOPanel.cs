@@ -1,18 +1,16 @@
 ﻿using System;
-using UnityEngine;
 using UnityEngine.UI;
 
-public class IOPanel : ButtonPanel, IIOProcessDispatcher
+public class IOPanel : ButtonPanel, IUIStateDispatcher
 {
-    public event EventHandler<IOProcessEventArgs> IOProcessEventHandler;
+    public event EventHandler<UIStateUpdateEventArgs> UIStateUpdateEventHandler;
 
     public override void HandleButtonClicked(Button button)
     {
-        var siblingIndex = button.transform.GetSiblingIndex();
-        var processType = (IOProcessType)siblingIndex;
-        var filePath = string.Format("{0}/{1}.json", Application.persistentDataPath, "yodawg");
+        var sibIndex = button.transform.GetSiblingIndex();
+        var state = sibIndex == 0 ? UIState.SAVE_PROMPT : UIState.LOAD_PROMPT;
 
-        if (IOProcessEventHandler != null)
-            IOProcessEventHandler(this, new IOProcessEventArgs(filePath, processType));
+        if (UIStateUpdateEventHandler != null)
+            UIStateUpdateEventHandler(this, new UIStateUpdateEventArgs(state));
     }
 }

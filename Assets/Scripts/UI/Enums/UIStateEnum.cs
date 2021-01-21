@@ -3,7 +3,6 @@
     WORLD,
     SHAPE_DATA,
     LIGHT_DATA,
-    IO_PROMPT,
-    LOADING,
-    CLEAR_WARNING
+    SAVE_PROMPT,
+    LOAD_PROMPT
 }
