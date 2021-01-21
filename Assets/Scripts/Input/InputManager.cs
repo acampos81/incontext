@@ -3,21 +3,23 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class InputManager : MonoBehaviour,
+public class InputManager : InputListenerBase,
     IMouseButtonStateDispatcher,
     IScrollWheelDispatcher,
-    IHotKeyStateDispatcher
+    IHotKeyStateDispatcher,
+    IRemoveObjectDispatcher
 {
     public event EventHandler<MouseButtonStateEventArgs> MouseButtonStateEventHandler;
     public event EventHandler<ScrollWheelEventArgs> ScrollWheelEventHandler;
     public event EventHandler<HotKeyEventArgs> HotKeyStateEventHandler;
+    public event EventHandler RemoveObjectEventHandler;
 
     private List<int> _mouseButtons;
     private List<KeyCode> _hotKeys;
 
     private void Awake()
     {
-        List<IInputListener> inputListeners = FindObjectsOfType<MonoBehaviour>().OfType<IInputListener>().ToList();
+        List<IInputListener> inputListeners = FindObjectsOfType<MonoBehaviour>(true).OfType<IInputListener>().ToList();
 
         foreach(IInputListener listener in inputListeners)
         {
@@ -26,6 +28,8 @@ public class InputManager : MonoBehaviour,
         }
 
         _hotKeys = new List<KeyCode>();
+        _hotKeys.Add(KeyCode.Alpha1);
+        _hotKeys.Add(KeyCode.Alpha2);
         _hotKeys.Add(KeyCode.LeftAlt);
         _hotKeys.Add(KeyCode.RightAlt);
         _hotKeys.Add(KeyCode.LeftControl);
@@ -66,6 +70,12 @@ public class InputManager : MonoBehaviour,
 
     void CheckKeyboardInput()
     {
+        if(Input.GetKeyDown(KeyCode.Delete))
+        {
+            if (RemoveObjectEventHandler != null)
+                RemoveObjectEventHandler(this, EventArgs.Empty);
+        }
+
         foreach (var keyCode in _hotKeys)
         {
             if (Input.GetKeyDown(keyCode))
@@ -84,6 +94,10 @@ public class InputManager : MonoBehaviour,
     {
         switch(keyCode)
         {
+            case KeyCode.Alpha1:
+                return HotKey.KEY_1;
+            case KeyCode.Alpha2:
+                return HotKey.KEY_2;
             case KeyCode.LeftAlt:
             case KeyCode.RightAlt:
                 return HotKey.ALT;

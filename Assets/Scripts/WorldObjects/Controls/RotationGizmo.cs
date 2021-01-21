@@ -1,12 +1,16 @@
 ﻿using UnityEngine;
 
-public class WorldObjectRotation : WorldObjectControl
+public class RotationGizmo : MonoBehaviour
 {
+    public IWorldObjectModel Model { get; set; }
+
     private Vector3 _startPoint;
     private Quaternion _startRotation;
 
     void Update()
     {
+        if (Model == null) return;
+
         if (Input.GetMouseButtonDown(0))
         {
             _startRotation = transform.rotation;
@@ -17,7 +21,7 @@ public class WorldObjectRotation : WorldObjectControl
         if (Input.GetMouseButton(0))
         {
             var rotation = MathUtil.GetScreenToWorldRotation(Camera.main, gameObject, _startRotation, _startPoint);
-            _model.Rotation = rotation;
+            Model.Rotation = rotation;
         }
     }
 }

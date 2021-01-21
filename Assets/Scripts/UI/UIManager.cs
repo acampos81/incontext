@@ -28,11 +28,14 @@ public class UIManager : MonoBehaviour,
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (Input.GetKeyDown(KeyCode.Escape) ||
+            Input.GetKeyDown(KeyCode.Delete))
         {
             WorldObjectManager.Instance.WorldObjectClicked(null, MouseClickType.SINGLE);
             UpdateUIState(UIState.WORLD);
         }
+
+
     }
 
     public void HandleWorldObjectSelected(object sender, WorldObjectSelectedEventArgs args)

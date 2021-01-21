@@ -25,6 +25,9 @@ public class WorldObjectManager : UnitySingleton<WorldObjectManager>
             if(behaviour is ICreateObjectDispatcher createDispatcher)
                 createDispatcher.CreateObjectEventHandler += HandleCreateObject;
 
+            if (behaviour is IRemoveObjectDispatcher removeDispatcher)
+                removeDispatcher.RemoveObjectEventHandler += HandleRemoveObject;
+
             if (behaviour is IWorldObjectSelectedListener selectedListener)
                 WorldObjectSelectedEventHandler += selectedListener.HandleWorldObjectSelected;
 
@@ -82,6 +85,13 @@ public class WorldObjectManager : UnitySingleton<WorldObjectManager>
         objView.Model.Position = WORLD_OBJECT_START_POSITION;
     }
 
+    private void HandleRemoveObject(object sender, EventArgs args)
+    {
+        if (_selectedView == null) return;
+
+        RemoveViewInstance(_selectedView.Model.Type, ((WorldObjectViewBase)_selectedView).gameObject);
+    }
+
     private IWorldObjectView AddViewInstance(WorldObjectType objectType)
     {
         var objInstance = _objectPools[objectType].Next();
@@ -134,8 +144,6 @@ public class WorldObjectManager : UnitySingleton<WorldObjectManager>
             model = worldObject.Model;
             _selectedView = worldObject;
             _selectedView.SetSelected(true);
-            //if (WorldObjectSelectedEventHandler != null)
-            //    WorldObjectSelectedEventHandler(this, new WorldObjectSelectedEventArgs(worldObject.Model, clickType));
         }
 
         if (WorldObjectSelectedEventHandler != null)
