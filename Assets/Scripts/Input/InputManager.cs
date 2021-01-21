@@ -4,12 +4,10 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class InputManager : MonoBehaviour,
-    IInputContextDispatcher,
     IMouseButtonStateDispatcher,
     IScrollWheelDispatcher,
     IHotKeyStateDispatcher
 {
-    public event EventHandler<InputContextEventArgs> InputContextEventHandler;
     public event EventHandler<MouseButtonStateEventArgs> MouseButtonStateEventHandler;
     public event EventHandler<ScrollWheelEventArgs> ScrollWheelEventHandler;
     public event EventHandler<HotKeyEventArgs> HotKeyStateEventHandler;
@@ -37,11 +35,6 @@ public class InputManager : MonoBehaviour,
         _mouseButtons.Add(0);
         _mouseButtons.Add(1);
         _mouseButtons.Add(2);
-    }
-
-    void Start()
-    {
-        DispatchInputContextEvent(InputContext.WORLD);
     }
 
     void Update()
@@ -104,9 +97,6 @@ public class InputManager : MonoBehaviour,
 
     public void RegisterListenerEvents(IInputListener listener)
     {
-        if (listener is IInputContextListener contextListener)
-            InputContextEventHandler += contextListener.HandleInputContext;
-
         if (listener is IMouseButtonStateListener mouseListener)
             MouseButtonStateEventHandler += mouseListener.HandleMouseButtonState;
 
@@ -119,9 +109,6 @@ public class InputManager : MonoBehaviour,
 
     public void DeregisterListenerEvents(IInputListener listener)
     {
-        if (listener is IInputContextListener contextListener)
-            InputContextEventHandler -= contextListener.HandleInputContext;
-
         if (listener is IMouseButtonStateListener mouseListener)
             MouseButtonStateEventHandler -= mouseListener.HandleMouseButtonState;
 
@@ -143,11 +130,6 @@ public class InputManager : MonoBehaviour,
         {
             DeregisterListenerEvents(listener);
         }
-    }
-
-    void DispatchInputContextEvent(InputContext context)
-    {
-        InputContextEventHandler(this, new InputContextEventArgs(context));
     }
 
     void DispatchMouseButtonEvent(MouseButton button, ButtonState state)

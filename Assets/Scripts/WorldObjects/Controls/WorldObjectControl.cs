@@ -1,18 +1,31 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
-public class WorldObjectControl : MonoBehaviour
+public abstract class WorldObjectControl : MonoBehaviour, IWorldObjectSelectedListener
 {
-    // Start is called before the first frame update
-    void Start()
+    protected IWorldObjectModel _model;
+
+    private void UpdateView()
     {
-        
+        transform.position = _model.Position + _model.LocalCenterPoint;
+        transform.rotation = _model.Rotation;
     }
 
-    // Update is called once per frame
-    void Update()
+    public void HandleWorldObjectSelected(object sender, WorldObjectSelectedEventArgs args)
     {
-        
+        // Deregister from previous model's update action
+        if (_model != null)
+            _model.OnModelUpdate -= UpdateView;
+
+        _model = args.objectModel;
+
+        // Register for this new model's update action.
+        if (_model != null)
+        {
+            _model.OnModelUpdate += UpdateView;
+            UpdateView();
+        }
+
+        // If the model is null, means no object is selected.  turn off.
+        this.gameObject.SetActive(_model != null);
     }
 }

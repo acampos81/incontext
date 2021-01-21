@@ -7,7 +7,6 @@ using DG.Tweening;
 public class CameraController : InputListenerBase,
     IWorldObjectSelectedListener,
     IMouseButtonStateListener,
-    IInputContextListener,
     IScrollWheelListener,
     IHotKeyListener
 {
@@ -80,15 +79,6 @@ public class CameraController : InputListenerBase,
         }
 
         _currentState = newState;
-    }
-
-    public void HandleInputContext(object sender, InputContextEventArgs args)
-    {
-        this.enabled = args.context == InputContext.WORLD;
-        if(!this.enabled)
-        {
-            Reset();
-        }
     }
 
     public void HandleMouseButtonState(object sender, MouseButtonStateEventArgs args)
