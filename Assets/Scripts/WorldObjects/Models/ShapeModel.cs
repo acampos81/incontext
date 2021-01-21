@@ -1,7 +1,8 @@
 ﻿using System;
+using SimpleJSON;
 using UnityEngine;
 
-public class ShapeModel : IShape
+public class ShapeModel : IShapeModel
 {
     public Action OnModelUpdate { get; set; }
 
@@ -42,5 +43,25 @@ public class ShapeModel : IShape
             if (OnModelUpdate != null)
                 OnModelUpdate();
         }
+    }
+
+    public JSONNode ToJSON()
+    {
+        JSONNode modelNode = new JSONObject();
+        modelNode["type"] = Type.ToString();
+        modelNode["localCenterPoint"] = new JSONObject().WriteVector3(LocalCenterPoint);
+        modelNode["position"] = new JSONObject().WriteVector3(_position);
+        modelNode["rotation"] = new JSONObject().WriteQuaternion(_rotation);
+        modelNode["color"] = new JSONObject().WriteColor(_color);
+        return modelNode;
+    }
+
+    public void FromJSON(JSONNode modelNode)
+    {
+        Type = (WorldObjectType) Enum.Parse(typeof(WorldObjectType), modelNode["type"].Value);
+        LocalCenterPoint = modelNode["localCenterPoint"].ReadVector3();
+        _position = modelNode["position"].ReadVector3();
+        _rotation = modelNode["rotation"].ReadQuaternion();
+        _color = modelNode["color"].ReadColor();
     }
 }

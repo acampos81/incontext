@@ -4,44 +4,31 @@ public class LightView : WorldObjectViewBase
 {
     public Light lightComponent;
 
-    private ILight _model;
+    private ILightModel _model;
+    public override IWorldObjectModel Model {
+        get { return _model; }
+        set {
+            if (_model != null)
+                _model.OnModelUpdate -= HandleModelUpdate;
 
-    private Color _color;
+            _model = (ILightModel)value;
+            _model.OnModelUpdate += HandleModelUpdate;
+
+            HandleModelUpdate();
+        }
+    }
 
     protected override void OnAwake()
     {
-        var model = new LightModel();
-        model.Type = WorldObjectType.LIGHT;
-        model.Position = transform.position;
-        model.LocalCenterPoint = localCenterPoint;
-        model.Rotation = transform.rotation;
-        model.Intensity = lightComponent.intensity;
-        model.OnModelUpdate += HandleModelUpdate;
-        _model = model;
-
-        _color = WorldObjectManager.Instance.avaialbleMaterials[4].color;
-        UpdateMaterial(WorldObjectManager.Instance.GetIdleMaterial(_color));
+        UpdateViewColor(WorldObjectMaterials.Instance.LightDefaultColor);
     }
 
-    public override IWorldObjectModel GetModel()
-    {
-        return _model;
-    }
 
-    private void HandleModelUpdate()
+    protected override void HandleModelUpdate()
     {
         transform.position = _model.Position;
         transform.rotation = _model.Rotation;
         lightComponent.intensity = _model.Intensity;
-    }
-
-    private void OnMouseEnter()
-    {
-        UpdateMaterial(WorldObjectManager.Instance.GetHighlightMaterial(_color));
-    }
-
-    private void OnMouseExit()
-    {
-        UpdateMaterial(WorldObjectManager.Instance.GetIdleMaterial(_color));
+        lightComponent.spotAngle = _model.ConeAngle;
     }
 }

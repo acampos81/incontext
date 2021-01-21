@@ -216,6 +216,7 @@ GameObject:
   - component: {fileID: 2511970320929824948}
   - component: {fileID: 8092848543697328372}
   - component: {fileID: 3149473748796998547}
+  - component: {fileID: 6449525239978493432}
   m_Layer: 0
   m_Name: LightWO
   m_TagString: Untagged
@@ -266,10 +267,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   objectType: 3
   localCenterPoint: {x: 0, y: 0.1, z: 0}
+  lightComponent: {fileID: 2522866517341670444}
+--- !u!114 &6449525239978493432
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7211874857527150287}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 299bd89a7f9794108b1b78f64f0e2496, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  defaultMaterial: {fileID: 0}
+  highlightMaterial: {fileID: 0}
   meshRenderers:
   - {fileID: 1837857392776020664}
   - {fileID: 3199979240193502817}
-  lightComponent: {fileID: 2522866517341670444}
 --- !u!1 &7285963634108023951
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public interface IShape : IWorldObjectModel
+public interface IShapeModel : IWorldObjectModel
 {
     Color Color { get; set; }
 }

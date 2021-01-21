@@ -2,5 +2,5 @@
 
 public interface ICreateObjectDispatcher
 {
-    event EventHandler<CreateObjectEventArgs> OnCreateObject;
+    event EventHandler<CreateObjectEventArgs> CreateObjectEventHandler;
 }

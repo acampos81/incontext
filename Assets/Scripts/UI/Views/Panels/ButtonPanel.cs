@@ -1,9 +1,8 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.UI;
 
-public class ButtonPanel : MonoBehaviour
+public abstract class ButtonPanel : UIPanel
 {
     protected List<Button> _buttons;
 
@@ -12,8 +11,5 @@ public class ButtonPanel : MonoBehaviour
         _buttons = GetComponentsInChildren<Button>().ToList();
     }
 
-    public virtual void HandleButtonClicked(Button button)
-    {
-        Debug.Log(string.Format("Button {0} Clicked", button.name));
-    }
+    public abstract void HandleButtonClicked(Button button);
 }

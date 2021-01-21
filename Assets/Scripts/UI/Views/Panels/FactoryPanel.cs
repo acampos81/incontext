@@ -3,14 +3,14 @@ using UnityEngine.UI;
 
 public class FactoryPanel : ButtonPanel, ICreateObjectDispatcher
 {
-    public event EventHandler<CreateObjectEventArgs> OnCreateObject;
+    public event EventHandler<CreateObjectEventArgs> CreateObjectEventHandler;
 
     public override void HandleButtonClicked(Button button)
     {
         var siblingIndex = button.transform.GetSiblingIndex();
         var objectType = (WorldObjectType)siblingIndex;
 
-        if(OnCreateObject != null)
-            OnCreateObject(this, new CreateObjectEventArgs(objectType));
+        if(CreateObjectEventHandler != null)
+            CreateObjectEventHandler(this, new CreateObjectEventArgs(objectType));
     }
 }

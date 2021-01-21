@@ -1,4 +1,4 @@
 ﻿public interface IWorldObjectView
 {
-    IWorldObjectModel GetModel();
+    IWorldObjectModel Model { get; set; }
 }

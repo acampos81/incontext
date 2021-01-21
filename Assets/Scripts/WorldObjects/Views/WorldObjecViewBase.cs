@@ -1,64 +1,34 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics;
 using UnityEngine;
 
-[RequireComponent(typeof(Collider))]
+[RequireComponent(typeof(SelectableView))]
 public abstract class WorldObjectViewBase : MonoBehaviour, IWorldObjectView
 {
-    private const float DOUBLE_CLICK_MS = 500f;
+    private SelectableView _selectableView;
 
-    private Stopwatch _stopWatch;
+    public abstract IWorldObjectModel Model { get; set; }
 
     public WorldObjectType objectType;
     public Vector3 localCenterPoint;
-    public List<MeshRenderer> meshRenderers;
 
-    private void Awake()
+    void Awake()
     {
+        _selectableView = GetComponent<SelectableView>();
+        _selectableView.OnViewSelected = HandleViewSelected;
         OnAwake();
-        _stopWatch = new Stopwatch();
     }
 
-    private void Update()
+    private void HandleViewSelected(MouseClickType clickType)
     {
-        if(_stopWatch.IsRunning &&
-            _stopWatch.ElapsedMilliseconds > DOUBLE_CLICK_MS)
-        {
-            _stopWatch.Stop();
-        }
-    }
-
-    private void OnMouseUp()
-    {
-        if(_stopWatch.IsRunning)
-        {
-            _stopWatch.Stop();
-            HandleClick();
-        }else
-        {
-            _stopWatch.Reset();
-            _stopWatch.Start();
-        }
-    }
-
-    private void HandleClick()
-    {
-        var clickType = MouseClickType.SINGLE;
-
-        if (_stopWatch.ElapsedMilliseconds <= DOUBLE_CLICK_MS)
-            clickType = MouseClickType.DOUBLE;
-
         WorldObjectManager.Instance.WorldObjectClicked(this, clickType);
     }
 
-    protected void UpdateMaterial(Material material)
+    protected void UpdateViewColor(Color color)
     {
-        foreach (var renderer in meshRenderers)
-        {
-            renderer.sharedMaterial = material;
-        }
+        _selectableView.defaultMaterial = WorldObjectMaterials.Instance.GetDiffuseMaterial(color);
+        _selectableView.highlightMaterial = WorldObjectMaterials.Instance.GetHighlightMaterial(color);
     }
 
     protected abstract void OnAwake();
-    public abstract IWorldObjectModel GetModel();
+    protected abstract void HandleModelUpdate();
 }

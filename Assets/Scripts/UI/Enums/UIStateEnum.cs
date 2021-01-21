@@ -1,18 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-public class UIState : MonoBehaviour
+﻿public enum UIState
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    WORLD,
+    SHAPE_DATA,
+    LIGHT_DATA,
+    IO_PROMPT,
+    LOADING,
+    CLEAR_WARNING
 }

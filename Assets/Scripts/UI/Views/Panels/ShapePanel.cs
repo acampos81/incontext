@@ -1,8 +1,9 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 
-public class ShapePanel : MonoBehaviour, IWorldObjectSelectedListener
+public class ShapePanel : UIPanel, IWorldObjectSelectedListener
 {
     public InputField xField;
     public InputField yField;
@@ -10,15 +11,14 @@ public class ShapePanel : MonoBehaviour, IWorldObjectSelectedListener
     public Image colorImage;
     public List<Image> colorPickerImages;
 
-    private IShape _shapeModel;
+    private IShapeModel _shapeModel;
 
     void Start()
     {
         for(int i=0; i<colorPickerImages.Count; i++)
         {
             Image image = colorPickerImages[i];
-            var wc = WorldObjectManager.Instance.avaialbleMaterials[i].color;
-            image.color = wc;
+            image.color = WorldObjectMaterials.Instance.AvailableColors[i];
         }
     }
 
@@ -51,18 +51,18 @@ public class ShapePanel : MonoBehaviour, IWorldObjectSelectedListener
         if (_shapeModel != null)
             _shapeModel.OnModelUpdate -= UpdateUI;
 
-        _shapeModel = args.objectModel as IShape;
+        _shapeModel = args.objectModel as IShapeModel;
 
         UpdateUI();
 
         _shapeModel.OnModelUpdate += UpdateUI;
     }
 
-    void OnDisable()
-    {
-        if(_shapeModel != null)
-            _shapeModel.OnModelUpdate -= UpdateUI;
+    //void OnDisable()
+    //{
+    //    if(_shapeModel != null)
+    //        _shapeModel.OnModelUpdate -= UpdateUI;
 
-        _shapeModel = null;
-    }
+    //    _shapeModel = null;
+    //}
 }

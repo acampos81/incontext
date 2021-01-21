@@ -1,7 +1,8 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.UI;
 
-public class LightPanel : MonoBehaviour, IWorldObjectSelectedListener
+public class LightPanel : UIPanel, IWorldObjectSelectedListener
 {
     public InputField xPosField;
     public InputField yPosField;
@@ -11,7 +12,7 @@ public class LightPanel : MonoBehaviour, IWorldObjectSelectedListener
     public InputField zRotField;
     public Slider slider;
 
-    private ILight _lightModel;
+    private ILightModel _lightModel;
 
     void Awake()
     {
@@ -65,7 +66,7 @@ public class LightPanel : MonoBehaviour, IWorldObjectSelectedListener
         if (_lightModel != null)
             _lightModel.OnModelUpdate -= UpdateUI;
 
-        _lightModel = args.objectModel as ILight;
+        _lightModel = args.objectModel as ILightModel;
 
         UpdateUI();
 

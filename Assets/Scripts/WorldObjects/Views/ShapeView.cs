@@ -1,37 +1,30 @@
-﻿using UnityEngine;
-
-public class ShapeView : WorldObjectViewBase
+﻿public class ShapeView : WorldObjectViewBase
 {
-    private IShape _model;
+    private IShapeModel _model;
+    public override IWorldObjectModel Model
+    {
+        get { return _model; }
+        set
+        {
+            if (_model != null)
+                _model.OnModelUpdate -= HandleModelUpdate;
+
+            _model = (IShapeModel)value;
+            _model.OnModelUpdate += HandleModelUpdate;
+
+            HandleModelUpdate();
+        }
+    }
 
     protected override void OnAwake()
     {
-        var model = new ShapeModel();
-        model.Type = objectType;
-        model.Color = Color.gray;
-        model.Position = transform.position;
-        model.LocalCenterPoint = localCenterPoint;
-        model.OnModelUpdate += HandleModelUpdate;
-        _model = model;
+        UpdateViewColor(WorldObjectMaterials.Instance.ShapeDefaultColor);
     }
 
-    public override IWorldObjectModel GetModel()
-    {
-        return _model;
-    }
-
-    private void HandleModelUpdate()
+    protected override void HandleModelUpdate()
     {
         transform.position = _model.Position;
-    }
-
-    private void OnMouseEnter()
-    {
-        UpdateMaterial(WorldObjectManager.Instance.GetHighlightMaterial(_model.Color));
-    }
-
-    private void OnMouseExit()
-    {
-        UpdateMaterial(WorldObjectManager.Instance.GetIdleMaterial(_model.Color));
+        transform.rotation = _model.Rotation;
+        UpdateViewColor(_model.Color);
     }
 }
